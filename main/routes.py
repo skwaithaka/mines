@@ -6,7 +6,7 @@ from flask_login import current_user, login_user, login_required, logout_user
 import secrets
 import os
 from PIL import Image
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer,URLSafeTimedSerializer, SignatureExpired
+from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
 import requests
 from requests.auth import HTTPBasicAuth
