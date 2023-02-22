@@ -112,12 +112,12 @@ def register():
     if form.validate_on_submit():
         
 
-        mail = form.email.data
+        """mail = form.email.data
         token = s.dumps(form.email.data, salt='email-confirm')
         msg = Message('Confirm Email', sender='kinuthiasimon002@gmail.com', recipients=[form.email.data])
         link = url_for('confirm_email', token=token, _external=True)
         msg.body = 'Your link is {}'.format(link)
-        mail.send(msg)
+        mail.send(msg)"""
 
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         username = form.first_name.data + form.last_name.data
