@@ -14,7 +14,6 @@ import json
 from datetime import datetime
 import base64
 
-s = URLSafeTimedSerializer('Thisisasecret!')
 
 
 
