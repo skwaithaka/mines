@@ -1,5 +1,5 @@
 from flask import render_template, flash, redirect, request, url_for,abort
-from main import app, bcrypt,database,mail
+from main import app, bcrypt,database,mail,SECURITY_PASSWORD_SALT
 from main.forms import LoginForm, RegistrationForm, ProductForm, SellForm, RequestResetForm, ResetPasswordForm
 from main.models import User,Post
 from flask_login import current_user, login_user, login_required, logout_user
@@ -20,10 +20,10 @@ import base64
 @app.route('/')
 @app.route('/home')
 def home():
-    posts = Post.query.all()
+    posts = Post.query.filter(Post.category != 'hostels').all()
     categorys = [6, 4, 5, 5, 5, 5]
-    #image_file = url_for('static', filename='profile_pics/' + posts.image_file)
-    return render_template("home.html", categorys=categorys, posts=posts)
+    hostels = Post.query.filter_by(category='hostels')
+    return render_template("home.html", categorys=categorys, posts=posts,hostels=hostels)
 
 
 
@@ -49,6 +49,51 @@ def login():
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        
+
+
+        token = User.generate_confirmation_token(form.email.data)
+        msg = Message('Confirm Email', sender='simonkinuthia002@gmail.com', recipients=[form.email.data])
+        link = url_for('confirm_email', token=token, _external=True)
+        msg.body = 'Your link is {}'.format(link)
+        mail.send(msg)
+        
+
+
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        username = form.first_name.data + form.last_name.data
+        user = User(username=username,email=form.email.data,phone_number=form.phonenumber.data, password=hashed_password)
+        database.session.add(user)
+        database.session.commit()
+        flash('Your account has been created! An email has been sent to you registered email. Please verify to be able to login!', 'success')
+        return redirect(url_for('home'))
+    return render_template('register.html', title='Register', form=form)
+
+@app.route("/confirm/<token>")
+def confirm_email(token):
+    Email = User.confirm_token(token)
+    if Email == False:
+        flash("Activation link Expired," " danger")
+    user = User.query.filter_by(email=Email).first_or_404()
+    if user.confirmed:
+        flash("Account already confirmed.", "success")
+        return redirect(url_for("home"))
+    print(user.email)
+    if user.email == Email:
+        user.confirmed = True
+        database.session.add(user)
+        database.session.commit()
+        flash("You have confirmed your account. Thanks!", "success")
+    else:
+        flash("The confirmation link is invalid or has expired.", "danger")
+    return redirect(url_for("login"))
 
 
 def send_reset_email(user):
@@ -81,66 +126,13 @@ def reset_token(token):
 
 
 
-@app.route("/reset_password", methods=['GET', 'POST'])
-def reset_password():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-    form = RequestResetForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        send_reset_email(user)
-        flash('An email has been sent with instructions to reset your password.', 'info')
-        return redirect(url_for('login'))
-    return render_template('reset_request.html', title='Reset Password', form=form)
-
-
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
 
 
 
 
-@app.route("/register", methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        
-
-        """mail = form.email.data
-        token = s.dumps(form.email.data, salt='email-confirm')
-        msg = Message('Confirm Email', sender='kinuthiasimon002@gmail.com', recipients=[form.email.data])
-        link = url_for('confirm_email', token=token, _external=True)
-        msg.body = 'Your link is {}'.format(link)
-        mail.send(msg)"""
-
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        username = form.first_name.data + form.last_name.data
-        user = User(username=username,email=form.email.data,phone_number=form.phonenumber.data, password=hashed_password)
-        database.session.add(user)
-        database.session.commit()
-        flash('Your account has been created! An email has been sent to you registered email. Please verify to be able to login!', 'success')
-        return redirect(url_for('home'))
-    return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/confirm_email/<token>')
-def confirm_email(token,email):
-    try:
-        s.loads(token, salt='email-confirm', max_age=3600)
-        user = User.query.filter_by(email=email).first()
-        if user:
-            user.confirmed = True
-            database.session.commit()
 
-        flash('Email confirmed You can now login','success')
-    except SignatureExpired:
-        flash('The token is expired!','danger')
-    return redirect(url_for('login'))
 
 
 @app.route('/sell', methods=['GET', 'POST'])
@@ -195,6 +187,7 @@ class Test:
         self.clothes_count = Post.query.filter_by(category='clothes').count()
         self.furnitures_count = Post.query.filter_by(category='furnitures').count()
         self.others = Post.query.filter_by(category='others').count()
+        self.hostel_count = Post.query.filter_by(category='hostels').count()
 def fun():
     return Test()
 
@@ -204,7 +197,7 @@ def fun():
 def categories(category):
     posts = Post.query.filter_by(category=category)
     t=fun()
-    return render_template('category.html', posts=posts,others=t.others,bedding_count=t.bedding_count, clothes_count=t.clothes_count, furnitures_count=t.furnitures_count, electronics_count=t.electronics_count)
+    return render_template('category.html', posts=posts,others=t.others,bedding_count=t.bedding_count, clothes_count=t.clothes_count, furnitures_count=t.furnitures_count, electronics_count=t.electronics_count,hostel_count=t.hostel_count)
 
 
 
@@ -213,8 +206,15 @@ def categories(category):
 def products():
     posts = Post.query.all()
     t = fun()
-    return render_template('view_items.html', posts=posts, bedding_count=t.bedding_count, clothes_count=t.clothes_count, furnitures_count=t.furnitures_count, electronics_count=t.electronics_count)
+    return render_template('view_items.html', posts=posts, bedding_count=t.bedding_count, clothes_count=t.clothes_count, furnitures_count=t.furnitures_count, electronics_count=t.electronics_count,hostel_count=t.hostel_count)
 
+
+def getfilename(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+
+    return picture_fn
 
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
@@ -222,7 +222,7 @@ def save_picture(form_picture):
     picture_fn = random_hex + f_ext
     picture_path = os.path.join(app.root_path, 'static/images', picture_fn)
 
-    output_size = (225, 325)
+    output_size = (300, 325)
     i = Image.open(form_picture)
     i.thumbnail(output_size)
     i.save(picture_path)
@@ -237,9 +237,6 @@ def new_product():
         flash('Your Account Hasn\'t Been Activated ', 'danger')
         return redirect(url_for('home'))
     if form.validate_on_submit():
-        '''picture_file1 = save_picture(form.image1.data)
-        picture_file2 = save_picture(form.image2.data)
-        picture_file3 = save_picture(form.image3.data)'''
         product = Post(
             title = form.name.data,
             content = form.content.data,
@@ -247,6 +244,10 @@ def new_product():
             price = form.price.data,
             category = form.category.data,
             author = current_user,
+            image_file1 = save_picture(form.image1.data),
+            image_file2 = save_picture(form.image2.data),
+            image_file3 = save_picture(form.image3.data)
+
             )
         database.session.add(product)
         database.session.commit()
@@ -255,6 +256,14 @@ def new_product():
         next_page = request.args.get('next')
         return redirect(next_page) if next_page else redirect(url_for('home'))                
     return render_template('add_item.html', form=form)
+
+
+
+
+
+
+
+
 
 
 
@@ -464,6 +473,13 @@ def _access_token():
     data = r.json()
     return data['access_token']
 
+
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 
 

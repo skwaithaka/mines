@@ -33,6 +33,10 @@ padding: 50px;">
                         <a href="{{ url_for('categories', category = 'furnitures') }}" class="link-dark"> <span class="text-white">Furnitures</span> </a>
                         <span>{{ furnitures_count }}</span>
                     </div>
+                    <div class=" text-uppercase  d-flex justify-content-between mt-2">
+                        <a href="{{ url_for('categories', category = 'furnitures') }}" class="link-dark"> <span class="text-white">Hostels</span> </a>
+                        <span>{{ hostel_count }}</span>
+                    </div>
 
                 </div>
             </div>
@@ -44,7 +48,7 @@ padding: 50px;">
                 <div class="col-md-4">
                   
                     <div class="product py-4">
-                        <a href="{{url_for('product', id=post['_id'])}}"><div class="text-center"> <img src="" width="200"> </div></a>
+                        <a href="{{url_for('product', id=post['_id'])}}"><div class="text-center"> <img src="{{ url_for('static', filename='images/' + post.image_file1) }}" width="200"> </div></a>
                         <div class="about text-center">
                             <h5>{{ post['name'] }}</h5> <span>${{ post['price'] }}</span>
                         </div>

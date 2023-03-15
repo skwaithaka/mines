@@ -103,7 +103,7 @@
     
                 <!--img------------------>
                 <div class="product-feature-img">
-                    <a href="{{url_for('product', id=post.id)}}"> <img width="100" height="100"  src="{{ url_for('static', filename='images/' + post.image_file) }}" ></a>
+                    <a href="{{url_for('product', id=post.id)}}"> <img width="300" height="200"  src="{{ url_for('static', filename='images/' + post.image_file1) }}" ></a>
                 </div>
     
                 <!--text-contaier--------->
@@ -125,31 +125,7 @@
             
         </div>
     </section>
-    <section id="feature-product">
-        <h1>HOSTELS</h1>
-        <div class="feature-product-container">
-            {% for hostel in hostels%}
-            <!--box-1---------------------->
-            <div class="feature-product-box">
-                <!--img------------------>
-                <div class="product-feature-img">
-                    <img alt="shirt" src="../static/img/hostel.png">
-                </div>
-                <!--text-contaier--------->
-                <div class="product-feature-text-container">
-                    <!--text-->
-                    <div class="product-feature-text">
-                        <strong> {{ hostel.name  }} </strong>
-                        <span>${{ hostel.price  }}</span>
-    
-                    </div>
-                    
-                </div>
-            </div>
-            {% endfor %}
-         
-        </div>
-    </section>
+
     <!--==banner==============================================================-->
     <section id="banner" class="banner-reverse">
         <!--text------>
@@ -163,6 +139,32 @@
         <div class="banner-img">
             <img alt="" src="../static/img/hostel.png">
         </div> 
+    </section>
+
+    <section id="feature-product">
+        <h1>HOSTELS</h1>
+        <div class="feature-product-container">
+            {% for hostel in hostels%}
+            <!--box-1---------------------->
+            <div class="feature-product-box">
+                <!--img------------------>
+                <div class="product-feature-img">
+                    <a href="{{url_for('product', id=hostel.id)}}"> <img width="300" height="200"  src="{{ url_for('static', filename='images/' + hostel.image_file1) }}" ></a>
+                </div>
+                <!--text-contaier--------->
+                <div class="product-feature-text-container">
+                    <!--text-->
+                    <div class="product-feature-text">
+                        <strong> {{ hostel.location  }} </strong>
+                        <span>${{ hostel.price  }}</span>
+    
+                    </div>
+                    
+                </div>
+            </div>
+            {% endfor %}
+         
+        </div>
     </section>
     <!--==Latest-News=========================================================-->
     <section id="news">
