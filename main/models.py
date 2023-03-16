@@ -2,6 +2,7 @@ from datetime import datetime
 from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from main import database, login_manager, app,SECURITY_PASSWORD_SALT
 from flask_login import UserMixin
+from flask_login import current_user
 
 @login_manager.user_loader
 def load_user(user_id):

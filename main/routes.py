@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, request, url_for,abort
 from main import app, bcrypt,database,mail,SECURITY_PASSWORD_SALT
-from main.forms import LoginForm, RegistrationForm, ProductForm, SellForm, RequestResetForm, ResetPasswordForm
+from main.forms import LoginForm, RegistrationForm, ProductForm, SellForm, RequestResetForm, ResetPasswordForm,UpdateAccountForm
 from main.models import User,Post
 from flask_login import current_user, login_user, login_required, logout_user
 import secrets
@@ -125,7 +125,40 @@ def reset_token(token):
     return render_template('reset_token.html', title='Reset Password', form=form)
 
 
+@app.route('/account/<id>')
+def account(id):
+    user = User.query.filter_by(id=id).first()
+    products = Post.query.filter_by(user_id=user.id)
+    t=fun()
 
+
+    return render_template('account.html',others=t.others,bedding_count=t.bedding_count, clothes_count=t.clothes_count, 
+    furnitures_count=t.furnitures_count, electronics_count=t.electronics_count,hostel_count=t.hostel_count,
+    products=products,user=user)
+
+    
+
+
+@app.route('/account/<id>/edit')
+def account_edit(id):
+    user = User.query.filter_by(id=id).first()
+    products = Post.query.filter_by(user_id=user.id)
+    t=fun()
+
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        database.session.commit()
+        flash('Your account has been updated!', 'success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+
+    return render_template('edit_user.html',others=t.others,bedding_count=t.bedding_count, clothes_count=t.clothes_count, 
+    furnitures_count=t.furnitures_count, electronics_count=t.electronics_count,hostel_count=t.hostel_count,
+    products=products,user=user,form=form)
 
 
 
@@ -196,8 +229,13 @@ def fun():
 @app.route('/categories/<category>')
 def categories(category):
     posts = Post.query.filter_by(category=category)
+    category = category
     t=fun()
-    return render_template('category.html', posts=posts,others=t.others,bedding_count=t.bedding_count, clothes_count=t.clothes_count, furnitures_count=t.furnitures_count, electronics_count=t.electronics_count,hostel_count=t.hostel_count)
+    return render_template('category.html', posts=posts,others=t.others,bedding_count=t.bedding_count, clothes_count=t.clothes_count, furnitures_count=t.furnitures_count, electronics_count=t.electronics_count,hostel_count=t.hostel_count,category=category)
+
+
+
+
 
 
 

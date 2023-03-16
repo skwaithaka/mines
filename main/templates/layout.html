@@ -54,7 +54,8 @@
             {% if current_user.activated == False %}
                 <li><a href="{{ url_for('sell')}}">action</a></li>
             {% endif %}
-                <li><a href="{{ url_for('products')}}">Products</a></li>
+                <!--<li><a href="{{ url_for('products')}}">Products</a></li>-->
+                <li><a href="{{ url_for('account',   id = current_user.id )}}">Account</a></li>
                 <li><a href="{{ url_for('logout')}}">Logout</a></li>
             {% else %}
                 <li><a href="{{ url_for('home')}}">Home</a></li>
